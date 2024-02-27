@@ -25,8 +25,9 @@ void preencherCadastro(struct Cadastro *cadastros, int x) {
     fgets(cadastros[x].sintoma, 200, stdin);
     printf("Insira o diagnostico: ");
     fgets(cadastros[x].diagnostico, 200, stdin);
-    getchar();
     setbuf(stdin, NULL);
+    printf("Insira a idade: ");
+    scanf("%d", &cadastros[x].idade);
     cadastros[x].ID = x + 1;
     printf("\n=========================================");
 
@@ -35,7 +36,9 @@ void preencherCadastro(struct Cadastro *cadastros, int x) {
         printf("Erro ao abrir o arquivo.\n");
         return;
     }
-    fprintf(arq, "%s %s %s %s %d\n", cadastros[x].nome, cadastros[x].nomeDono, cadastros[x].sintoma, cadastros[x].diagnostico, cadastros[x].ID);
+    
+    fprintf(arq, "%s %s %s %s %d %d\n", cadastros[x].nome, cadastros[x].nomeDono, cadastros[x].sintoma, cadastros[x].diagnostico, cadastros[x].ID, cadastros[x].idade);
+    
     fclose(arq);
     
 }
@@ -55,12 +58,13 @@ void visualizarCadastros(struct Cadastro *cadastros, int total) {
         printf("\n=========================================\n");
         printf("\n- Nome: %s", cadastros[i].nome);
         printf("\n- Nome do responsavel: %s", cadastros[i].nomeDono);
+        printf("\n- Idade: %d", cadastros[i].idade); 
         printf("\n- Sintomas: %s", cadastros[i].sintoma);
         printf("\n- Diagnostico: %s", cadastros[i].diagnostico);
-        printf("\n- ID: %d\n ", cadastros[i].ID);
+        printf("\n- ID: %d ", cadastros[i].ID);
         printf("\n=========================================\n");
     }
-
+    
     fclose(arq);
 }
 
@@ -86,6 +90,8 @@ void modificarCadastros(struct Cadastro *cadastros, int total, int id) {
     setbuf(stdin, NULL);
     printf("Insira o diagnostico: ");
     fgets(cadastros[id - 1].diagnostico, 200, stdin);
+    printf("Insira a idade: ");
+    scanf("%d", &cadastros[id - 1].idade);
     printf("\n=========================================");
 
     FILE *arq = fopen("cadastros.txt", "r");
@@ -105,12 +111,12 @@ void modificarCadastros(struct Cadastro *cadastros, int total, int id) {
     int encontrado = 0;
 
     
-    while (fscanf(arq, "%s %s %s %s %d\n", temp.nome, temp.nomeDono, temp.sintoma, temp.diagnostico, &temp.ID) != EOF) {
+    while (fscanf(arq, "%s %s %s %s %d %d\n", temp.nome, temp.nomeDono, temp.sintoma, temp.diagnostico, &temp.idade, &temp.ID) != EOF) {
         if (temp.ID == id) {
-            fprintf(temp_arq, "%s %s %s %s %d\n", cadastros[id - 1].nome, cadastros[id - 1].nomeDono, cadastros[id - 1].sintoma, cadastros[id - 1].diagnostico, cadastros[id - 1].ID);
+            fprintf(temp_arq, "%s %s %s %s %d %d\n", cadastros[id - 1].nome, cadastros[id - 1].nomeDono, cadastros[id - 1].sintoma, cadastros[id - 1].diagnostico, cadastros[id - 1].idade, cadastros[id - 1].ID);
             encontrado = 1;
         } else {
-            fprintf(temp_arq, "%s %s %s %s %d\n", temp.nome, temp.nomeDono, temp.sintoma, temp.diagnostico, temp.ID);
+            fprintf(temp_arq, "%s %s %s %s %d %d\n", temp.nome, temp.nomeDono, temp.sintoma, temp.diagnostico, temp.idade, temp.ID);
         }
     }
 
@@ -146,7 +152,7 @@ void deletarCadastros(struct Cadastro *cadastros, int total, int id) {
 
     struct Cadastro *temp = malloc((total - 1) * sizeof(struct Cadastro));
     if (temp == NULL) {
-        printf("Erro de alocaçao de memoria.\n");
+        printf("Erro de alocacao de memoria.\n");
         fclose(arq);
         return;
     }
@@ -169,7 +175,7 @@ void deletarCadastros(struct Cadastro *cadastros, int total, int id) {
     }
 
     for (int j = 0; j < total - 1; j++) {
-        fprintf(arq, "%s %s %s %s %s %d\n", temp[j].nome, temp[j].nomeDono, temp[j].especie, temp[j].sintoma, temp[j].diagnostico, temp[j].ID);
+        fprintf(arq, "%s %s %s %s %s %d %d\n", temp[j].nome, temp[j].nomeDono, temp[j].especie, temp[j].sintoma, temp[j].diagnostico, temp[j].idade, temp[j].ID);
     }
 
     fclose(arq);
@@ -186,15 +192,15 @@ void visualizarAnimalPorId(int id) {
     struct Cadastro animal;
     int encontrado = 0;
 
-    while (fscanf(arq, "%s %s %s %s %d\n", animal.nome, animal.nomeDono, animal.especie, animal.sintoma, animal.diagnostico, &animal.ID) != EOF) {
+    while (fscanf(arq, "%s %s %s %s %d %d\n", animal.nome, animal.nomeDono, animal.sintoma, animal.diagnostico, &animal.ID, &animal.idade) != EOF) {
         if (animal.ID == id) {
             printf("\n=========================================\n");
             printf("\n- Nome: %s", animal.nome);
             printf("\n- Nome do responsavel: %s", animal.nomeDono);
-            printf("\n- Especie: %s", animal.especie);
             printf("\n- Sintomas: %s", animal.sintoma);
             printf("\n- Diagnostico: %s", animal.diagnostico);
-            printf("\n- ID: %d\n ", animal.ID);
+            printf("\n- ID: %d ", animal.ID);
+            printf("\n- Idade: %d\n\n ", animal.idade);
             printf("\n=========================================\n");
             encontrado = 1;
             break;
@@ -204,17 +210,16 @@ void visualizarAnimalPorId(int id) {
     fclose(arq);
 
     if (!encontrado) {
-        printf("Animal com ID %d não encontrado.\n", id);
+        printf("Animal com ID %d nao encontrado.\n", id);
     }
 }
-
 
 
 int main() {
     int op = 0, i = 0, n;
     struct Cadastro *cadastros = NULL;
 
-    while (op != 5) {
+    while (op != 6) {
         printf("\n=========================================\n");
         printf("Opcao [1] = Cadastrar ! ");
         printf("\nOpcao [2] = Visualizar cadastros ! ");
@@ -224,7 +229,7 @@ int main() {
         printf("\nOpcao [6] = Fechar ! ");
         printf("\n=========================================\n");
 
-        if(op != 5 ){
+        if(op != 6 ){
 
         scanf("%d", &op);
 
@@ -234,7 +239,6 @@ int main() {
                 cadastros = (struct Cadastro *)realloc(cadastros, i * sizeof(struct Cadastro));
                 printf("\n===========Cadastro numero %d=============\n", i);
                 preencherCadastro(cadastros, i - 1);
-                escreverCadastro(cadastros, i - 1);
                 break;
 
             case 2:
