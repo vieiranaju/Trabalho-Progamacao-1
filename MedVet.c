@@ -1,138 +1,273 @@
 #include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#define MAX 100
+#include <stdlib.h> 
 
 struct Cadastro {
-
-	char nome[50];
+    char nome[50];
     char nomeDono[50];
     char especie[50];
+    char sintoma[200];
+    char diagnostico[200];
+    int ID;
     int idade;
-    char inscricaoSintoma[100];
-    char diagnostico[100];
-
 };
 
-void Cadastrar(struct Cadastro cadastro[], int *ID){
+void preencherCadastro(struct Cadastro *cadastros, int x) {
 
-    printf("\n__________________________________");
-
-    setbuf(stdin, NULL);
-    printf("\n-> Insira o Nome do pet: \n");
-    fgets(cadastro[*ID].nome, 50, stdin);
+    system("cls");
 
     setbuf(stdin, NULL);
-    printf("\n-> Insira o nome do dono: \n");
-    fgets(cadastro[*ID].nomeDono, 50, stdin);
-
+    printf("Insira o nome do animal: ");
+    fgets(cadastros[x].nome, 50, stdin);
     setbuf(stdin, NULL);
-    printf("\n-> Insira a especie: \n");
-    fgets(cadastro[*ID].especie, 50, stdin);
-
-    printf("\n-> Insira a idade:\n");  
-    scanf("%d", &cadastro[*ID].idade);
-
+    printf("Insira o nome do dono: ");
+    fgets(cadastros[x].nomeDono, 50, stdin);
+    printf("Insira os Sintomas: ");
+    fgets(cadastros[x].sintoma, 200, stdin);
+    printf("Insira o diagnostico: ");
+    fgets(cadastros[x].diagnostico, 200, stdin);
+    getchar();
     setbuf(stdin, NULL);
-    printf("\n-> Decreva os sintomas: \n");
-    fgets(cadastro[*ID].inscricaoSintoma, 100, stdin);
+    cadastros[x].ID = x + 1;
+    printf("\n=========================================");
 
-    setbuf(stdin, NULL);
-    printf("\n-> Decreva o diagnostico: \n");
-    fgets(cadastro[*ID].diagnostico, 100, stdin);
-
-    (*ID)++;
-
-
+    FILE *arq = fopen("cadastros.txt", "a");
+    if (arq == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+    fprintf(arq, "%s %s %s %s %d\n", cadastros[x].nome, cadastros[x].nomeDono, cadastros[x].sintoma, cadastros[x].diagnostico, cadastros[x].ID);
+    fclose(arq);
+    
 }
 
-void exibirCadastros(struct Cadastro cadastro[], int ID){
-    printf("\nJogos cadastrados:\n");
+void visualizarCadastros(struct Cadastro *cadastros, int total) {
 
-    for (int i = 0; i < ID; i++) {
-        printf("\n------------------------------------------");
-        printf("\n- Nome do pet: %s", cadastro[i].nome);
-        printf("\n- Nome do dono: %s", cadastro[i].nomeDono);
-        printf("\n- Especie: %s", cadastro[i].especie);
-        printf("\n- Idade: %d\n ", cadastro[i].idade);
-        printf("\n- Sintomas: %s", cadastro[i].inscricaoSintoma);
-        printf("\n- Diagnostico: %s", cadastro[i].diagnostico);
+    system("cls");
 
+    FILE *arq = fopen("cadastros.txt", "r");
+    if (arq == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    printf("Cadastros armazenados:\n");
+    for(int i = 0; i < total; i++) {
+        printf("\n=========================================\n");
+        printf("\n- Nome: %s", cadastros[i].nome);
+        printf("\n- Nome do responsavel: %s", cadastros[i].nomeDono);
+        printf("\n- Sintomas: %s", cadastros[i].sintoma);
+        printf("\n- Diagnostico: %s", cadastros[i].diagnostico);
+        printf("\n- ID: %d\n ", cadastros[i].ID);
+        printf("\n=========================================\n");
+    }
+
+    fclose(arq);
+}
+
+void modificarCadastros(struct Cadastro *cadastros, int total, int id) {
+
+    system("cls");
+
+    if (id < 1 || id > total) {
+        printf("ID do cadastro invalido!\n");
+        return;
+    }
+
+    printf("\nModificando cadastro de ID %d\n", id);
+    setbuf(stdin, NULL);
+    printf("\nInsira o nome do animal: ");
+    fgets(cadastros[id - 1].nome, 50, stdin);
+    setbuf(stdin, NULL);
+    printf("Insira o nome do dono: ");
+    fgets(cadastros[id - 1].nomeDono, 50, stdin);
+    setbuf(stdin, NULL);
+    printf("Insira os Sintomas: ");
+    fgets(cadastros[id - 1].sintoma, 200, stdin);
+    setbuf(stdin, NULL);
+    printf("Insira o diagnostico: ");
+    fgets(cadastros[id - 1].diagnostico, 200, stdin);
+    printf("\n=========================================");
+
+    FILE *arq = fopen("cadastros.txt", "r");
+    if (arq == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    FILE *temp_arq = fopen("temp_cadastros.txt", "w");
+    if (temp_arq == NULL) {
+        printf("Erro ao abrir o arquivo temporario.\n");
+        fclose(arq);
+        return;
+    }
+
+    struct Cadastro temp;
+    int encontrado = 0;
+
+    
+    while (fscanf(arq, "%s %s %s %s %d\n", temp.nome, temp.nomeDono, temp.sintoma, temp.diagnostico, &temp.ID) != EOF) {
+        if (temp.ID == id) {
+            fprintf(temp_arq, "%s %s %s %s %d\n", cadastros[id - 1].nome, cadastros[id - 1].nomeDono, cadastros[id - 1].sintoma, cadastros[id - 1].diagnostico, cadastros[id - 1].ID);
+            encontrado = 1;
+        } else {
+            fprintf(temp_arq, "%s %s %s %s %d\n", temp.nome, temp.nomeDono, temp.sintoma, temp.diagnostico, temp.ID);
+        }
+    }
+
+    fclose(arq);
+    fclose(temp_arq);
+
+
+    remove("cadastros.txt");
+    rename("temp_cadastros.txt", "cadastros.txt");
+
+    if (!encontrado) {
+        printf("ID do cadastro nao encontrado.\n");
+    } else {
+        printf("\nCadastro modificado com sucesso.\n");
     }
 }
 
-void buscaPorID(struct Cadastro cadastro[], int ID, int busca){
-    int j = 0;
 
-     for (int i = 0; i < ID; i++) {
+void deletarCadastros(struct Cadastro *cadastros, int total, int id) {
 
-        if(ID + 1 == busca){
+    system("cls");
 
-            printf("\n------------------------------------------");
-            printf("\n- Nome: %s", cadastro[busca].nome);
-            printf("\n- Genero: %s", cadastro[busca].genero);
-            printf("\n- Modo de Jogo: %s", cadastro[busca].modoJogo);
-            printf("\n- Plataforma: %s", cadastro[i].plataforma);
-            printf("\n- Ranking: %d\n ", cadastro[i].ranking);
-            j++;
+    if (id < 1 || id > total) {
+        printf("ID do cadastro invalido!\n");
+        return;
+    }
 
+    FILE *arq = fopen("cadastros.txt", "r");
+    if (arq == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    struct Cadastro *temp = malloc((total - 1) * sizeof(struct Cadastro));
+    if (temp == NULL) {
+        printf("Erro de alocaçao de memoria.\n");
+        fclose(arq);
+        return;
+    }
+
+    int i = 0; 
+    for (int j = 0; j < total; j++) {
+        if (cadastros[j].ID != id) {
+            temp[i] = cadastros[j];
+            i++;
         }
+    }
 
-     }
+    fclose(arq);
 
-     if(j == 0){
-        printf("Nenhum jogo coincide com o genero buscado !");
-     }
+    arq = fopen("cadastros.txt", "w");
+    if (arq == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        free(temp);
+        return;
+    }
 
+    for (int j = 0; j < total - 1; j++) {
+        fprintf(arq, "%s %s %s %s %s %d\n", temp[j].nome, temp[j].nomeDono, temp[j].especie, temp[j].sintoma, temp[j].diagnostico, temp[j].ID);
+    }
+
+    fclose(arq);
+    free(temp);
+}
+
+void visualizarAnimalPorId(int id) {
+    FILE *arq = fopen("cadastros.txt", "r");
+    if (arq == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    struct Cadastro animal;
+    int encontrado = 0;
+
+    while (fscanf(arq, "%s %s %s %s %d\n", animal.nome, animal.nomeDono, animal.especie, animal.sintoma, animal.diagnostico, &animal.ID) != EOF) {
+        if (animal.ID == id) {
+            printf("\n=========================================\n");
+            printf("\n- Nome: %s", animal.nome);
+            printf("\n- Nome do responsavel: %s", animal.nomeDono);
+            printf("\n- Especie: %s", animal.especie);
+            printf("\n- Sintomas: %s", animal.sintoma);
+            printf("\n- Diagnostico: %s", animal.diagnostico);
+            printf("\n- ID: %d\n ", animal.ID);
+            printf("\n=========================================\n");
+            encontrado = 1;
+            break;
+        }
+    }
+
+    fclose(arq);
+
+    if (!encontrado) {
+        printf("Animal com ID %d não encontrado.\n", id);
+    }
 }
 
 
 
-int main(){
+int main() {
+    int op = 0, i = 0, n;
+    struct Cadastro *cadastros = NULL;
 
-    struct Cadastro cadastro[MAX];
-    int opcao, ID = 0;
-    int busca;
-    int rankingB;
+    while (op != 5) {
+        printf("\n=========================================\n");
+        printf("Opcao [1] = Cadastrar ! ");
+        printf("\nOpcao [2] = Visualizar cadastros ! ");
+        printf("\nOpcao [3] = Deletar ! ");
+        printf("\nOpcao [4] = Modificar Cadastro ! ");
+        printf("\nOpcao [5] = Consultar Cadastro ! ");
+        printf("\nOpcao [6] = Fechar ! ");
+        printf("\n=========================================\n");
 
-    do {
-        printf("\nSelecione a opcao:\n");
-        printf("1. Adicionar jogo\n");
-        printf("2. Exibir jogos cadastrados\n");
-        printf("3. Busca por ID\n");
-        printf("5. Verificar se jogo é favorito\n");
-        printf("0. Sair\n");
-        scanf("%d", &opcao);
+        if(op != 5 ){
 
-        switch (opcao) {
+        scanf("%d", &op);
+
+        switch (op) {
             case 1:
-                Cadastrar(cadastro, &ID);
+                i++;
+                cadastros = (struct Cadastro *)realloc(cadastros, i * sizeof(struct Cadastro));
+                printf("\n===========Cadastro numero %d=============\n", i);
+                preencherCadastro(cadastros, i - 1);
+                escreverCadastro(cadastros, i - 1);
                 break;
+
             case 2:
-                exibirJogos(cadastro, ID);
+                visualizarCadastros(cadastros, i);
                 break;
+
             case 3:
-                printf("\nDigite numero de cadastro que deseja buscar: ");
-                scanf("%d", busca);
-                buscaPorGenero(cadastro, ID, busca);
+                printf("\nInsira o ID do cadastro que deseja deletar:\n");
+                scanf("%d", &n);
+                deletarCadastros(cadastros, i, n);
                 break;
+
             case 4:
-                printf("\nDigite o ranking que deseja buscar: ");
-                scanf("%d", &rankingB); 
-                JogoPorRanking(jogos, ID, rankingB);
+                printf("\nInsira o ID do cadastro que deseja modificar:\n");
+                scanf("%d", &n);
+                modificarCadastros(cadastros, i, n);
                 break;
             case 5:
-                printf("\nDigite o nome do jogo que deseja verificar: ");
-                scanf("%s", jogoF);
-                verificarFavorito(jogos, ID, jogoF);
+                printf("Insira qual registro voce quer consultar: ");
+                scanf("%d", &n);
+                visualizarAnimalPorId(n);
                 break;
-            case 0:
-                printf("\nEncerrando o programa.");
-                break;
-            default:
-                printf("\nOpcao invalida.");
-        }
-    } while (opcao != 0);
 
+            default:
+                break;
+        }
+        }
+    }
+
+    printf("Adeus!");
+
+    
+    free(cadastros);
+    
     return 0;
 }
