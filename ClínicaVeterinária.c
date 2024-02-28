@@ -43,7 +43,7 @@ void preencherCadastro(struct Cadastro *cadastros, int x) {
     
 }
 
-void visualizarCadastros(struct Cadastro *cadastros, int total) {
+void visualizarCadastros() {
 
     system("cls");
 
@@ -242,7 +242,7 @@ int main() {
                 break;
 
             case 2:
-                visualizarCadastros(cadastros, i);
+                visualizarCadastros();
                 break;
 
             case 3:
